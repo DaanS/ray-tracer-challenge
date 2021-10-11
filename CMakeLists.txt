@@ -10,6 +10,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 enable_testing()
 
-add_subdirectory("${CMAKE_SOURCE_DIR}/features")
+add_subdirectory("${CMAKE_SOURCE_DIR}/test")
 
 add_executable(main src/main.cpp)
