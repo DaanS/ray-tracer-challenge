@@ -2,12 +2,14 @@ set(_cucumberCpp_HEADER_SEARCH_DIRS
     "/usr/include"
     "/usr/local/include"
     "${CMAKE_SOURCE_DIR}/includes"
+    "${CMAKE_SOURCE_DIR}/build-cucumber-cpp/dist/include"
 )
 
 set(_cucumberCpp_LIB_SEARCH_DIRS
     "/usr/lib"
     "/usr/local/lib"
     "${CMAKE_SOURCE_DIR}/lib"
+    "${CMAKE_SOURCE_DIR}/build-cucumber-cpp/dist/lib"
 )
 
 # check env
