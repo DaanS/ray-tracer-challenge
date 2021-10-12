@@ -14,5 +14,13 @@ target_link_libraries(tuples
     gtest_main
 )
 
+add_executable(canvas
+    canvas.cpp
+)
+target_link_libraries(canvas
+    gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(tuples)
+gtest_discover_tests(canvas)

@@ -127,3 +127,26 @@ TEST(Tuples, Cross) {
     EXPECT_EQ(cross(a, b), vector(-1, 2, -1));
     EXPECT_EQ(cross(b, a), vector(1, -2, 1));
 }
+
+TEST(Tuples, Color) {
+    auto c = color(-0.5, 0.4, 1.7);
+    EXPECT_EQ(c.r, -0.5);
+    EXPECT_EQ(c.g, 0.4);
+    EXPECT_EQ(c.b, 1.7);
+}
+
+TEST(Tuples, ColorArithmetic) {
+    auto c1 = color(0.9, 0.6, 0.75);
+    auto c2 = color(0.7, 0.1, 0.25);
+    EXPECT_EQ(c1 + c2, color(1.6, 0.7, 1.0));
+    EXPECT_EQ(c1 - c2, color(0.2, 0.5, 0.5));
+    
+    auto c = color(0.2, 0.3, 0.4);
+    EXPECT_EQ(c * 2, color(0.4, 0.6, 0.8));
+}
+
+TEST(Tuples, ColorMultiplcation) {
+    auto c1 = color(1, 0.2, 0.4);
+    auto c2 = color(0.9, 1, 0.1);
+    EXPECT_EQ(c1 * c2, color(0.9, 0.2, 0.04));
+}
