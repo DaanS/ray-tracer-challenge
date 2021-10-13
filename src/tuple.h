@@ -2,10 +2,7 @@
 #define TUPLE_H
 
 #include <cmath>
-
-bool compare(double a, double b, double e) {
-    return std::abs(a - b) < e;
-}
+#include "util.h"
 
 //bool compare(struct tuple lhs, struct tuple rhs, double e) {
 //    return compare(lhs.x, rhs.x, e) &&
@@ -28,13 +25,12 @@ struct tuple {
         return w == 0.0;
     }
 
-    static constexpr double e{0.0001};
     bool operator==(struct tuple rhs) const {
     //    return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
-        return compare(x, rhs.x, e) &&
-               compare(y, rhs.y, e) &&
-               compare(z, rhs.z, e) &&
-               compare(w, rhs.w, e);
+        return compare(x, rhs.x) &&
+               compare(y, rhs.y) &&
+               compare(z, rhs.z) &&
+               compare(w, rhs.w);
     }
 
     struct tuple operator+(struct tuple rhs) const {

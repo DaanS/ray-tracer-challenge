@@ -21,6 +21,14 @@ target_link_libraries(canvas
     gtest_main
 )
 
+add_executable(matrix
+    matrix.cpp
+)
+target_link_libraries(matrix
+    gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(tuples)
 gtest_discover_tests(canvas)
+gtest_discover_tests(matrix)

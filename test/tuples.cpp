@@ -49,7 +49,7 @@ TEST(Tuples, SubtractPoints) {
     EXPECT_EQ(p1 - p2, vector(-2, -4, -6));
 }
 
-TEST(Typles, SubtractVectorFromPoint) {
+TEST(Tuples, SubtractVectorFromPoint) {
     auto p = point(3, 2, 1);
     auto v = vector(5, 6, 7);
     EXPECT_EQ(p - v, point(-2, -4, -6));
