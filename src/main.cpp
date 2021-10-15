@@ -2,29 +2,29 @@
 #include <fstream>
 #include "tuple.h"
 #include "canvas.h"
+#include "sphere.h"
+#include "transform.h"
 
-struct projectile {
-    struct tuple pos;
-    struct tuple vel;
-};
-
-struct env {
-    struct tuple g;
-    struct tuple w;
-};
+struct tuple screen_to_world(struct canvas const& c, double x, double y) {
+    return point(x / (c.width / 2.0) - 1, y / (c.height / 2.0) - 1, 1);
+}
 
 int main() {
-    auto p = projectile{point(0, 1, 0), normalize(vector(1, 1.8, 0)) * 11.25};
-    auto e = env{vector(0, -0.1, 0), vector(-0.01, 0, 0)};
-    auto c = canvas(1200, 550);
+    auto c = canvas(400, 400);
+    auto s = sphere();
+    s.transform = translation(0, 0, 2);
+    auto cam_pos = point(0, 0, 0);
 
-    while (p.pos.y > -p.vel.y) {
-        p.pos += p.vel;
-        p.vel += e.g;
-        p.vel += e.w;
-
-        std::cout << "tick: " << p.pos << std::endl;
-        write_pixel(c, p.pos.x, 550 - p.pos.y, color(1, 0, 0));
+    for (int y = 0; y < c.height; ++y) {
+        for (int x = 0; x < c.width; ++x) {
+            auto target = screen_to_world(c, x, y);
+            auto r = ray(cam_pos, target - cam_pos);
+            auto xs = intersects(s, r);
+            auto h = hit(xs);
+            if (h != no_hit) {
+                write_pixel(c, x, y, color(1, 0, 0));
+            }
+        }
     }
 
     std::ofstream ofs("out.ppm");
