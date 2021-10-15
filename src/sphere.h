@@ -5,6 +5,7 @@
 #include "intersection.h"
 #include "object.h"
 #include "ray.h"
+#include "tuple.h"
 
 struct sphere : public object { 
     sphere() : object(identity_matrix) {}
@@ -25,6 +26,14 @@ struct intersections intersects(struct sphere const& s, struct ray const& ray) {
         intersection((-b - sqrt(d)) / (a * 2), s),
         intersection((-b + sqrt(d)) / (a * 2), s)
     );
+}
+
+struct tuple normal_at(struct sphere const& s, struct tuple const& p) {
+    auto p_obj = inverse(s.transform) * p;
+    auto n_obj = p_obj - point(0, 0, 0);
+    auto n = transpose(inverse(s.transform)) * n_obj;
+    n.w = 0;
+    return normalize(n);
 }
 
 #endif

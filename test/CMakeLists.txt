@@ -35,3 +35,11 @@ gtest_discover_tests(sphere)
 add_executable(intersection intersection.cpp)
 target_link_libraries(intersection gtest_main)
 gtest_discover_tests(intersection)
+
+add_executable(light light.cpp)
+target_link_libraries(light gtest_main)
+gtest_discover_tests(light)
+
+add_executable(material material.cpp)
+target_link_libraries(material gtest_main)
+gtest_discover_tests(material)

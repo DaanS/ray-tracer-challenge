@@ -150,3 +150,9 @@ TEST(Tuples, ColorMultiplcation) {
     auto c2 = color(0.9, 1, 0.1);
     EXPECT_EQ(c1 * c2, color(0.9, 0.2, 0.04));
 }
+
+TEST(Tuples, Reflect) {
+    auto v = vector(1, -1, 0);
+    auto n = vector(0, 1, 0);
+    EXPECT_EQ(reflect(v, n), vector(1, 1, 0));
+}

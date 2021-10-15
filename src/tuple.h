@@ -26,7 +26,6 @@ struct tuple {
     }
 
     bool operator==(struct tuple rhs) const {
-    //    return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
         return compare(x, rhs.x) &&
                compare(y, rhs.y) &&
                compare(z, rhs.z) &&
@@ -108,6 +107,10 @@ struct tuple cross(struct tuple a, struct tuple b) {
         a.z * b.x - a.x * b.z,
         a.x * b.y - a.y * b.x
     };
+}
+
+struct tuple reflect(struct tuple in, struct tuple normal) {
+    return in - normal * 2 * dot(in, normal);
 }
 
 #endif

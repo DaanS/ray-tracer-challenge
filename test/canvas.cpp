@@ -50,3 +50,11 @@ TEST(Canvas, Pixels) {
     EXPECT_EQ(lines[4], "0 0 0 0 0 0 0 127 0 0 0 0 0 0 0 ");
     EXPECT_EQ(lines[5], "0 0 0 0 0 0 0 0 0 0 0 0 0 0 255 ");
 }
+
+TEST(Canvas, ScreenToWorld) {
+    auto c = canvas(16, 9);
+    EXPECT_EQ(screen_to_world(c, 0, 0), point(-1, 1, 1));
+    EXPECT_EQ(screen_to_world(c, c.width, 0), point(1, 1, 1));
+    EXPECT_EQ(screen_to_world(c, 0, c.height), point(-1, -1, 1));
+    EXPECT_EQ(screen_to_world(c, c.width, c.height), point(1, -1, 1));
+}

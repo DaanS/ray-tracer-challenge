@@ -74,4 +74,8 @@ std::string canvas_to_ppm(struct canvas const& c) {
     return ss.str();
 }
 
+struct tuple screen_to_world(struct canvas const& c, double x, double y) {
+    return point(x / (c.width / 2.0) - 1, 1 - (y / (c.height / 2.0)), 1);
+}
+
 #endif
