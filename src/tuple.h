@@ -4,13 +4,6 @@
 #include <cmath>
 #include "util.h"
 
-//bool compare(struct tuple lhs, struct tuple rhs, double e) {
-//    return compare(lhs.x, rhs.x, e) &&
-//           compare(lhs.y, rhs.y, e) &&
-//           compare(lhs.z, rhs.z, e) &&
-//           compare(lhs.w, rhs.w, e);
-//}
-
 struct tuple {
     union {double x; double r;};
     union {double y; double g;}; 

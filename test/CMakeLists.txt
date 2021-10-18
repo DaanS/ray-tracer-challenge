@@ -43,3 +43,11 @@ gtest_discover_tests(light)
 add_executable(material material.cpp)
 target_link_libraries(material gtest_main)
 gtest_discover_tests(material)
+
+add_executable(world world.cpp)
+target_link_libraries(world gtest_main)
+gtest_discover_tests(world)
+
+add_executable(camera camera.cpp)
+target_link_libraries(camera gtest_main)
+gtest_discover_tests(camera)

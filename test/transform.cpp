@@ -97,3 +97,40 @@ TEST(Transform, Chain) {
 
     EXPECT_EQ(C * B * A * p, point(15, 0, 7));
 }
+
+TEST(Transform, DefaultView) {
+    auto from = point(0, 0, 0);
+    auto to = point(0, 0, -1);
+    auto up = vector(0, 1, 0);
+    auto t = view_transform(from, to, up);
+    EXPECT_EQ(t, identity_matrix);
+}
+
+TEST(Transform, ViewZ) {
+    auto from = point(0, 0, 0);
+    auto to = point(0, 0, 1);
+    auto up = vector(0, 1, 0);
+    auto t = view_transform(from, to, up);
+    EXPECT_EQ(t, scaling(-1, 1, -1));
+}
+
+TEST(Transform, ViewMove) {
+    auto from = point(0, 0, 8);
+    auto to = point(0, 0, 0);
+    auto up = vector(0, 1, 0);
+    auto t = view_transform(from, to, up);
+    EXPECT_EQ(t, translation(0, 0, -8));
+}
+
+TEST(Transform, View) {
+    auto from = point(1, 3, 2);
+    auto to = point(4, -2, 8);
+    auto up = vector(1, 1, 0);
+    auto t = view_transform(from, to, up);
+    EXPECT_EQ(t, matrix(
+        -0.50709, 0.50709, 0.67612, -2.36643,
+        0.76772, 0.60609, 0.12122, -2.82843,
+        -0.35857, 0.59761, -0.71714, 0.00000,
+        0.00000, 0.00000, 0.00000, 1.00000
+    ));
+}

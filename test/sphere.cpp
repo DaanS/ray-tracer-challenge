@@ -10,8 +10,8 @@ TEST(Sphere, Intersect) {
     EXPECT_EQ(xs.count, 2);
     EXPECT_EQ(xs[0].t, 4);
     EXPECT_EQ(xs[1].t, 6);
-    EXPECT_EQ(xs[0].object, s);
-    EXPECT_EQ(xs[1].object, s);
+    EXPECT_EQ(xs[0].object(), s);
+    EXPECT_EQ(xs[1].object(), s);
 }
 
 TEST(Sphere, Tangent) {
@@ -56,14 +56,14 @@ TEST(Sphere, Create) {
 TEST(Sphere, Transform) {
     auto s = sphere();
     auto t = translation(2, 3, 4);
-    s.transform = t;
+    s.transformation(t);
     EXPECT_EQ(s.transform, t);
 }
 
 TEST(Sphere, IntersectScaled) {
     auto r = ray(point(0, 0, -5), vector(0, 0, 1));
     auto s = sphere();
-    s.transform = scaling(2, 2, 2);
+    s.transformation(scaling(2, 2, 2));
     auto xs = intersects(s, r);
     EXPECT_EQ(xs.count, 2);
     EXPECT_EQ(xs[0].t, 3);
@@ -73,7 +73,7 @@ TEST(Sphere, IntersectScaled) {
 TEST(Sphere, IntersectTranslated) {
     auto r = ray(point(0, 0, -5), vector(0, 0, 1));
     auto s = sphere();
-    s.transform = translation(5, 0, 0);
+    s.transformation(translation(5, 0, 0));
     auto xs = intersects(s, r);
     EXPECT_EQ(xs.count, 0);
 }
@@ -92,14 +92,14 @@ TEST(Sphere, Normal) {
 
 TEST(Sphere, NormalTranslated) {
     auto s = sphere();
-    s.transform = translation(0, 1, 0);
+    s.transformation(translation(0, 1, 0));
     auto n = normal_at(s, point(0, 1.70711, -0.70711));
     EXPECT_EQ(n, vector(0, 0.70711, -0.70711));
 }
 
 TEST(Sphere, NormalTransformed) {
     auto s = sphere();
-    s.transform = scaling(1, 0.5, 1) * rotation_z(std::numbers::pi / 5);
+    s.transformation(scaling(1, 0.5, 1) * rotation_z(std::numbers::pi / 5));
     auto n = normal_at(s, point(0, std::sqrt(2) / 2, -std::sqrt(2) / 2));
     EXPECT_EQ(n, vector(0, 0.97014, -0.24254));
 }

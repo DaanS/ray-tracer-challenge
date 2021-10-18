@@ -18,6 +18,11 @@ struct material {
                specular == rhs.specular &&
                shininess == rhs.shininess;
     }
+
+    friend std::ostream& operator<<(std::ostream& os, struct material const& m) {
+        os << "{" << m.color << ", " << m.ambient << ", " << m.diffuse << ", " << m.specular << ", " << m.shininess << "}";
+        return os;
+    }
 };
 
 struct tuple lighting(struct material const& material, struct light const& light, struct tuple point, struct tuple eye, struct tuple normal) {

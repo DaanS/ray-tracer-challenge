@@ -56,4 +56,18 @@ struct matrix_t<4> shearing(double xy, double xz, double yx, double yz, double z
         0, 0, 0, 1
     };
 }
+
+struct matrix_t<4> view_transform(struct tuple from, struct tuple to, struct tuple up) {
+    auto forward = normalize(to - from);
+    auto left = cross(forward, normalize(up));
+    auto true_up = cross(left, forward);
+    auto orientation = matrix(
+        left.x, left.y, left.z, 0,
+        true_up.x, true_up.y, true_up.z, 0,
+        -forward.x, -forward.y, -forward.z, 0,
+        0, 0, 0, 1
+    );
+    return orientation * translation(-from.x, -from.y, -from.z);
+}
+
 #endif

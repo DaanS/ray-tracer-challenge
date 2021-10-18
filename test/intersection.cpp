@@ -6,7 +6,7 @@ TEST(Intersection, Basic) {
     auto s = sphere();
     auto i = intersection(3.5, s);
     EXPECT_EQ(i.t, 3.5);
-    EXPECT_EQ(i.object, s);
+    EXPECT_EQ(i.object(), s);
 }
 
 TEST(Intersection, Aggregate) {
@@ -51,4 +51,28 @@ TEST(Intersection, Order) {
     auto i4 = intersection(2, s);
     auto xs = intersections(i1, i2, i3, i4);
     EXPECT_EQ(hit(xs), i4);
+}
+
+TEST(Intersection, Precompute) {
+    auto r = ray(point(0, 0, -5), vector(0, 0, 01));
+    auto shape = sphere();
+    auto i = intersection(4, shape);
+    auto comps = prepare_computations(i, r);
+    EXPECT_EQ(comps.t, i.t);
+    EXPECT_EQ(comps.object(), i.object());
+    EXPECT_EQ(comps.point, point(0, 0, -1));
+    EXPECT_EQ(comps.eye, vector(0, 0, -1));
+    EXPECT_EQ(comps.normal, vector(0, 0, -1));
+    EXPECT_FALSE(comps.inside);
+}
+
+TEST(Intersection, Inside) {
+    auto r = ray(point(0, 0, 0), vector(0, 0, 1));
+    auto shape = sphere();
+    auto i = intersection(1, shape);
+    auto comps = prepare_computations(i, r);
+    EXPECT_EQ(comps.point, point(0, 0, 1));
+    EXPECT_EQ(comps.eye, vector(0, 0, -1));
+    EXPECT_EQ(comps.normal, vector(0, 0, -1));
+    EXPECT_TRUE(comps.inside);
 }
