@@ -15,9 +15,9 @@ struct world {
         lights_container.emplace_back(l);
     }
 
-    template<typename ObjType>
-    void object(ObjType obj) {
-        objects_container.emplace_back(std::make_unique<ObjType>(std::forward<ObjType>(obj)));
+    template<typename ObjType, typename... Args>
+    struct object& object(Args... args) {
+        return *objects_container.emplace_back(std::make_unique<ObjType>(std::forward<Args>(args)...));
     }
 
     struct light& lights(size_t i) {
@@ -48,7 +48,7 @@ struct tuple shade_hit(struct world const& world, struct computations const& com
         auto h = hit(intersects(world, ray(comps.point + normalize(l) * 0.01, normalize(l))));
         if (h != no_hit && h.t < magnitude(l)) continue;
 
-        res += lighting(comps.object().material, light, comps.point, comps.eye, comps.normal);
+        res += lighting(comps.object().material(), light, comps.point, comps.eye, comps.normal);
     }
     return res;
 }

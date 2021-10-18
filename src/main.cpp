@@ -7,83 +7,43 @@
 #include "transform.h"
 #include "world.h"
 #include "camera.h"
+#include "plane.h"
 
 using namespace std::numbers;
-
-void draw_purple_sphere_in_void() {
-    auto c = canvas(400, 400);
-
-    auto s = sphere();
-    s.transform = translation(0, 0, 2);
-    s.material.color = color(1, 0.2, 1);
-
-    auto light = point_light(point(-10, 10, -10), color(1, 1, 1));
-
-    auto cam_pos = point(0, 0, 0);
-
-    for (int y = 0; y < c.height; ++y) {
-        for (int x = 0; x < c.width; ++x) {
-            auto target = screen_to_world(c, x, y);
-            auto r = ray(cam_pos, normalize(target - cam_pos));
-            auto xs = intersects(s, r);
-            auto h = hit(xs);
-            if (h != no_hit) {
-                auto point = position(r, h.t);
-                auto normal = h.object().normal_at(point);
-                auto eye = -r.direction;
-                auto color = lighting(h.object().material, light, point, eye, normal);
-                write_pixel(c, x, y, color);
-            }
-        }
-    }
-
-    std::ofstream ofs("out.ppm");
-    ofs << canvas_to_ppm(c) << std::endl;
-}
 
 struct world build_world() {
     struct world w;
 
-    auto floor = sphere();
-    floor.transform = scaling(10, 0.01, 10);
-    floor.material = material();
-    floor.material.color = color(1, 0.9, 0.9);
-    floor.material.specular = 0;
-    w.object(floor);
+    auto& floor = w.object<struct plane>();
+    auto wall_mat = color_material(1, 0.9, 0.9);
+    floor.material(wall_mat);
+    floor.material().specular = 0;
 
-    auto left_wall = sphere();
-    left_wall.transform = translation(0, 0, 5) * rotation_y(-pi / 4) * rotation_x(pi / 2) * scaling(10, 0.01, 10);
-    left_wall.material = floor.material;
-    w.object(left_wall);
+    auto& left_wall = w.object<struct plane>();
+    left_wall.transformation(translation(0, 0, 5) * rotation_y(-pi / 4)* rotation_x(pi / 2));
+    left_wall.material(wall_mat);
 
-    auto right_wall = sphere();
-    right_wall.transform = translation(0, 0, 5) * rotation_y(pi / 4) * rotation_x(pi / 2) * scaling(10, 0.01, 10);
-    right_wall.material = floor.material;
-    w.object(right_wall);
+    auto& right_wall = w.object<struct plane>();
+    right_wall.transformation(translation(0, 0, 5) * rotation_y(pi / 4) * rotation_x(pi / 2));
+    right_wall.material(wall_mat);
 
-    auto middle = sphere();
+    auto& middle = w.object<struct sphere>();
     middle.transform = translation(-0.5, 1, 0.5);
-    middle.material = material();
-    middle.material.color = color(0.1, 1, 0.5);
-    middle.material.diffuse = 0.7;
-    middle.material.specular = 0.3;
-    w.object(middle);
+    middle.material(color_material(0.1, 1, 0.5));
+    middle.material().diffuse = 0.7;
+    middle.material().specular = 0.3;
 
-    auto right = sphere();
+    auto& right = w.object<struct sphere>();
     right.transform = translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5);
-    right.material = material();
-    right.material.color = color(0.5, 1, 0.5);
-    right.material.diffuse = 0.7;
-    right.material.specular = 0.3;
-    w.object(right);
+    right.material(color_material(0.5, 1, 0.5));
+    right.material().diffuse = 0.7;
+    right.material().specular = 0.3;
 
-    auto left = sphere();
+    auto& left = w.object<struct sphere>();
     left.transform = translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33);
-    left.material = material();
-    left.material.color = color(1, 0.5, 1);
-    left.material.diffuse = 0.7;
-    left.material.specular = 0.3;
-    w.object(left);
+    left.material(color_material(1, 0.5, 1));
+    left.material().diffuse = 0.7;
+    left.material().specular = 0.3;
 
     auto light = point_light(point(-10, 10, -10), color(1, 1, 0.5));
     w.light(light);
@@ -98,7 +58,7 @@ struct world build_world() {
 
 int main() {
     auto w = build_world();
-    auto cam = camera(800, 600, pi / 3);
+    auto cam = camera(400, 300, pi / 3);
     cam.transform = view_transform(point(0, 1.5, -5), point(0, 1, 0), vector(0, 1, 0));
     auto canvas = render(cam, w);
 

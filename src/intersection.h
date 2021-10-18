@@ -1,8 +1,10 @@
 #ifndef INTERSECTION_H
 #define INTERSECTION_H
 
-#include "object.h"
 #include "ray.h"
+
+struct object;
+std::ostream& operator<<(std::ostream&, struct object const&);
 
 struct intersection {
     double t;
@@ -34,6 +36,11 @@ struct intersections {
         return xs[i];
     }
 
+    void add(struct intersection const& i) {
+        ++count;
+        xs.push_back(i);
+    }
+
     void sort() {
         std::sort(xs.begin(), xs.end(), [](auto a, auto b) { return a.t < b.t;});
     }
@@ -44,7 +51,7 @@ struct intersections intersections(T... t) {
     return {sizeof...(T), std::vector<struct intersection>{t...}};
 }
 
-static const struct intersection no_hit {-1, &no_hit_obj};
+static const struct intersection no_hit {-1, nullptr};
 
 struct intersection hit(struct intersections const& xs) {
     int res = -1;
@@ -67,17 +74,5 @@ struct computations {
 
     struct object const& object() const { return *obj; }
 };
-
-struct computations prepare_computations(struct intersection const& i, struct ray const& r) {
-    struct computations comps;
-    comps.t = i.t;
-    comps.obj = &(i.object());
-    comps.point = position(r, i.t);
-    comps.eye = -r.direction;
-    auto normal = normal_at(i.object(), comps.point);
-    comps.inside = (dot(normal, comps.eye) < 0);
-    comps.normal = normal * (comps.inside ? -1 : 1);
-    return comps;
-}
 
 #endif

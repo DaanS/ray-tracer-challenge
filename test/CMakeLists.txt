@@ -51,3 +51,11 @@ gtest_discover_tests(world)
 add_executable(camera camera.cpp)
 target_link_libraries(camera gtest_main)
 gtest_discover_tests(camera)
+
+add_executable(object object.cpp)
+target_link_libraries(object gtest_main)
+gtest_discover_tests(object)
+
+add_executable(plane plane.cpp)
+target_link_libraries(plane gtest_main)
+gtest_discover_tests(plane)

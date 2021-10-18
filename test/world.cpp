@@ -10,15 +10,13 @@ struct WorldTest : public ::testing::Test {
         auto l = point_light(point(-10, 10, -10), color(1, 1, 1));
         w.light(l);
 
-        auto s1 = sphere();
-        s1.material.color = color(0.8, 1.0, 0.6);
-        s1.material.diffuse = 0.7;
-        s1.material.specular = 0.2;
-        w.object(s1);
+        auto& s1 = w.object<struct sphere>();
+        s1.material(color_material(0.8, 1.0, 0.6));
+        s1.material().diffuse = 0.7;
+        s1.material().specular = 0.2;
 
-        auto s2 = sphere();
+        auto& s2 = w.object<struct sphere>();
         s2.transformation(scaling(0.5, 0.5, 0.5));
-        w.object(s2);
     }
 };
 
@@ -39,9 +37,9 @@ TEST_F(WorldTest, Object) {
 TEST_F(WorldTest, Default) {
     auto light = point_light(point(-10, 10, -10), color(1, 1, 1));
     auto s1 = sphere();
-    s1.material.color = color(0.8, 1.0, 0.6);
-    s1.material.diffuse = 0.7;
-    s1.material.specular = 0.2;
+    s1.material(color_material(0.8, 1.0, 0.6));
+    s1.material().diffuse = 0.7;
+    s1.material().specular = 0.2;
     auto s2 = sphere();
     s2.transformation(scaling(0.5, 0.5, 0.5));
 
@@ -93,9 +91,9 @@ TEST_F(WorldTest, HitColor) {
 
 TEST_F(WorldTest, MidColor) {
     auto& outer = w.objects(0);
-    outer.material.ambient = 1;
+    outer.material().ambient = 1;
     auto& inner = w.objects(1);
-    inner.material.ambient = 1;
+    inner.material().ambient = 1;
     auto r = ray(point(0, 0, 0.75), vector(0, 0, -1));
     auto c = color_at(w, r);
     // XXX book expects this to return the inner material color, even though it's blocked by the outer sphere

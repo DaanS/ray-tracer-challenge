@@ -51,15 +51,13 @@ TEST(Camera, Render) {
     auto l = point_light(point(-10, 10, -10), color(1, 1, 1));
     w.light(l);
 
-    auto s1 = sphere();
-    s1.material.color = color(0.8, 1.0, 0.6);
-    s1.material.diffuse = 0.7;
-    s1.material.specular = 0.2;
-    w.object(s1);
+    auto& s1 = w.object<struct sphere>();
+    s1.material(color_material(0.8, 1.0, 0.6));
+    s1.material().diffuse = 0.7;
+    s1.material().specular = 0.2;
 
-    auto s2 = sphere();
+    auto& s2 = w.object<struct sphere>();
     s2.transform = scaling(0.5, 0.5, 0.5);
-    w.object(s2);
 
     auto c = camera(11, 11, pi / 2);
     auto from = point(0, 0, -5);

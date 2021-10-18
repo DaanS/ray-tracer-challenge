@@ -5,28 +5,61 @@
 #include "light.h"
 
 struct material {
-    struct tuple color{1, 1, 1, 0};
     double ambient = 0.1;
     double diffuse = 0.9;
     double specular = 0.9;
     double shininess = 200;
 
-    bool operator==(struct material const& rhs) const {
-        return color == rhs.color &&
-               ambient == rhs.ambient &&
+    virtual ~material() {}
+
+    virtual bool operator==(struct material const& rhs) const {
+        return ambient == rhs.ambient &&
                diffuse == rhs.diffuse &&
                specular == rhs.specular &&
                shininess == rhs.shininess;
     }
 
+    virtual struct tuple color_at(struct tuple const& p) const = 0;
+
+    virtual void print(std::ostream& os) const {
+        os <<  ambient << ", " << diffuse << ", " << specular << ", " << shininess;
+    }
+
     friend std::ostream& operator<<(std::ostream& os, struct material const& m) {
-        os << "{" << m.color << ", " << m.ambient << ", " << m.diffuse << ", " << m.specular << ", " << m.shininess << "}";
+        m.print(os);
         return os;
     }
 };
 
+struct color_material : public material {
+    struct tuple color{1, 1, 1, 0};
+
+    color_material() {}
+    color_material(double r, double g, double b) : color(::color(r, g, b)) {}
+
+    virtual bool operator==(struct material const& other) const override {
+        try {
+            auto rhs = dynamic_cast<struct color_material const&>(other);
+            return color == rhs.color &&
+                this->material::operator==(rhs);
+        } catch (std::bad_cast) {
+            return false;
+        }
+    }
+
+    virtual struct tuple color_at(struct tuple const& p) const override {
+        return color;
+    }
+
+    virtual void print(std::ostream& os) const override {
+        os << "{" << color << ", ";
+        material::print(os);
+        os << "}";
+    }
+};
+
 struct tuple lighting(struct material const& material, struct light const& light, struct tuple point, struct tuple eye, struct tuple normal) {
-    auto base_color = material.color * light.intensity;
+    auto base_color = material.color_at(point) * light.intensity;
     auto ambient = base_color * material.ambient;
     auto diffuse = color(0, 0, 0);
     auto specular = color(0, 0, 0);

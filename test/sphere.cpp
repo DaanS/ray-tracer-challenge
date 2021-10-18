@@ -106,11 +106,11 @@ TEST(Sphere, NormalTransformed) {
 
 TEST(Sphere, Material) {
     auto s = sphere();
-    auto m = material();
-    EXPECT_EQ(s.material, m);
+    auto m = color_material();
+    EXPECT_EQ(s.material(), m);
 
     m.ambient = 1;
-    s.material = m;
-    EXPECT_EQ(s.material, m);
-    EXPECT_EQ(s.material.ambient, 1);
+    s.material(m);
+    EXPECT_EQ(s.material(), m);
+    EXPECT_EQ(s.material().ambient, 1);
 }
