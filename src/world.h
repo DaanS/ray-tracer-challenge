@@ -40,25 +40,38 @@ struct intersections intersects(struct world const& w, struct ray const& r) {
     return xs;
 }
 
-struct tuple shade_hit(struct world const& world, struct computations const& comps) {
+struct tuple color_at(struct world const&, struct ray const&, size_t);
+struct tuple reflected_color(struct world const& w, struct computations const& comps, size_t depth = 0) {
+    if (depth > 3 || comps.object().material().reflective == 0) return color(0, 0, 0);
+    else {
+        auto r = ray(comps.over_point, comps.reflect);
+        auto c = color_at(w, r, depth + 1);
+        return c * comps.object().material().reflective;
+    }
+}
+
+bool is_shadowed(struct world const& world, struct light const& light, struct tuple const& point) {
+    auto l = light.position - point;
+    auto h = hit(intersects(world, ray(point + normalize(l) * 0.01, normalize(l))));
+    if (h != no_hit && h.t < magnitude(l)) return true;
+    return false;
+}
+
+struct tuple shade_hit(struct world const& world, struct computations const& comps, size_t depth = 0) {
     auto res = color(0, 0, 0);
     for (auto const& light : world.lights_container) {
-        // XXX block light
-        auto l = light.position - comps.point;
-        auto h = hit(intersects(world, ray(comps.point + normalize(l) * 0.01, normalize(l))));
-        if (h != no_hit && h.t < magnitude(l)) continue;
-
-        res += lighting(comps.object().material(), light, comps.point, comps.eye, comps.normal);
+        res += lighting(comps.object(), light, comps.point, comps.eye, comps.normal, is_shadowed(world, light, comps.point));
     }
+    res += reflected_color(world, comps, depth);
     return res;
 }
 
-struct tuple color_at(struct world const& world, struct ray const& r) {
+struct tuple color_at(struct world const& world, struct ray const& r, size_t depth = 0) {
     auto xs = intersects(world, r);
     auto h = hit(xs);
     if (h == no_hit) return color(0, 0, 0);
     auto comps = prepare_computations(h, r);
-    return shade_hit(world, comps);
+    return shade_hit(world, comps, depth);
 }
 
 #endif

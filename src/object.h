@@ -50,6 +50,10 @@ struct object {
         return normalize(n);
     }
 
+    struct tuple color_at(struct tuple const& p) const {
+        return material().color_at(inverse_transform * p);
+    }
+
     friend std::ostream& operator<<(std::ostream& os, struct object const& o) {
         os << "{transform: " << o.transform << ", material: " << o.material() << "}";
         return os;
@@ -81,7 +85,38 @@ struct computations prepare_computations(struct intersection const& i, struct ra
     auto normal = normal_at(i.object(), comps.point);
     comps.inside = (dot(normal, comps.eye) < 0);
     comps.normal = normal * (comps.inside ? -1 : 1);
+    comps.reflect = reflect(r.direction, comps.normal);
+    comps.over_point = comps.point + comps.normal * epsilon;
+    comps.under_point = comps.point - comps.normal * epsilon;
     return comps;
+}
+
+struct tuple lighting(struct object const& obj, struct light const& light, struct tuple point, struct tuple eye, struct tuple normal, bool shadow = false) {
+    auto base_color = obj.color_at(point) * light.intensity;
+    auto ambient = base_color * obj.material().ambient;
+    auto reflect_factor = 1 - obj.material().reflective;
+    if (shadow) return ambient * reflect_factor;
+
+    auto diffuse = color(0, 0, 0);
+    auto specular = color(0, 0, 0);
+
+    auto light_v = normalize(light.position - point);
+    auto l_dot_n = dot(light_v, normal);
+
+    if (l_dot_n >= 0) {
+        diffuse = base_color * obj.material().diffuse * l_dot_n;
+
+        auto reflect_v = reflect(-light_v, normal);
+        auto r_dot_v = dot(reflect_v, eye);
+
+        if (r_dot_v >= 0) {
+            auto factor = std::pow(r_dot_v, obj.material().shininess);
+            specular = light.intensity * obj.material().specular * factor;
+        }
+    }
+
+    // XXX reflection hack
+    return (ambient + specular + diffuse) * reflect_factor;
 }
 
 #endif

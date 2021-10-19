@@ -1,6 +1,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
+#include "matrix.h"
 #include "tuple.h"
 #include "light.h"
 
@@ -9,6 +10,7 @@ struct material {
     double diffuse = 0.9;
     double specular = 0.9;
     double shininess = 200;
+    double reflective = 0;
 
     virtual ~material() {}
 
@@ -58,28 +60,97 @@ struct color_material : public material {
     }
 };
 
-struct tuple lighting(struct material const& material, struct light const& light, struct tuple point, struct tuple eye, struct tuple normal) {
-    auto base_color = material.color_at(point) * light.intensity;
-    auto ambient = base_color * material.ambient;
-    auto diffuse = color(0, 0, 0);
-    auto specular = color(0, 0, 0);
+struct stripe {
+    struct tuple c1;
+    struct tuple c2;
 
-    auto light_v = normalize(light.position - point);
-    auto l_dot_n = dot(light_v, normal);
+    bool operator==(struct stripe const& rhs) const {
+        return c1 == rhs.c1 && c2 == rhs.c2;
+    }
 
-    if (l_dot_n >= 0) {
-        diffuse = base_color * material.diffuse * l_dot_n;
+    struct tuple operator()(struct tuple const& p) const {
+        if (static_cast<int>(std::floor(p.x)) % 2 == 0) return c1;
+        else return c2;
+    }
+};
 
-        auto reflect_v = reflect(-light_v, normal);
-        auto r_dot_v = dot(reflect_v, eye);
+struct gradient {
+    struct tuple c1;
+    struct tuple c2;
 
-        if (r_dot_v >= 0) {
-            auto factor = std::pow(r_dot_v, material.shininess);
-            specular = light.intensity * material.specular * factor;
+    bool operator==(struct gradient const& rhs) const {
+        return c1 == rhs.c1 && c2 == rhs.c2;
+    }
+
+    struct tuple operator()(struct tuple const& p) const {
+        return c1 + (c2 - c1) * (p.x - std::floor(p.x));
+    }
+};
+
+struct ring {
+    struct tuple c1;
+    struct tuple c2;
+
+    bool operator==(struct ring const& rhs) const {
+        return c1 == rhs.c1 && c2 == rhs.c2;
+    }
+
+    struct tuple operator()(struct tuple const& p) const {
+        if (static_cast<int>(std::floor(std::sqrt(p.x * p.x + p.z * p.z))) % 2 == 0) return c1;
+        else return c2;
+    }
+};
+
+struct checkers {
+    struct tuple c1;
+    struct tuple c2;
+
+    bool operator==(struct checkers const& rhs) const {
+        return c1 == rhs.c1 && c2 == rhs.c2;
+    }
+
+    struct tuple operator()(struct tuple const& p) const {
+        if (static_cast<int>(std::floor(p.x + epsilon) + std::floor(p.y + epsilon) + std::floor(p.z + epsilon)) % 2 == 0) return c1;
+        else return c2;
+    }
+};
+
+template<typename PatternFunc>
+struct pattern_material : public material {
+    PatternFunc pattern;
+    struct matrix_t<4> transform = identity_matrix;
+    struct matrix_t<4> inverse_transform = identity_matrix;
+
+    pattern_material(PatternFunc pattern) : pattern(pattern) {}
+
+    void transformation(struct matrix_t<4> const& m) {
+        assert(is_invertible(m));
+        transform = m;
+        inverse_transform = inverse(m);
+    }
+
+    virtual bool operator==(struct material const& other) const override {
+        try {
+            auto rhs = dynamic_cast<struct pattern_material<PatternFunc> const&>(other);
+            return pattern == rhs.pattern &&
+                this->material::operator==(rhs);
+        } catch (std::bad_cast) {
+            return false;
         }
     }
 
-    return ambient + diffuse + specular;
+    virtual struct tuple color_at(struct tuple const& p) const override {
+        return pattern(inverse_transform * p);
+    }
+
+    virtual void print(std::ostream& os) const override {
+        material::print(os);
+    }
+};
+
+template<typename PatternFunc>
+struct pattern_material<PatternFunc> pattern(struct tuple const& c1, struct tuple const& c2) {
+    return pattern_material<PatternFunc>(PatternFunc{c1, c2});
 }
 
 #endif

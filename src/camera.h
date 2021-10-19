@@ -55,6 +55,20 @@ struct ray ray_for_pixel(struct camera const& cam, size_t x, size_t y) {
     return {origin, normalize(pixel - origin)};
 }
 
+void print_progress(double prog) {
+    int barWidth = 70;
+
+    std::cout << "[";
+    int pos = barWidth * prog;
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < pos) std::cout << "=";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
+    }
+    std::cout << "] " << int(prog * 100.0) << " %\r";
+    std::cout.flush();
+}
+
 struct canvas render(struct camera const& cam, struct world const& w) {
     struct canvas img = canvas(cam.w, cam.h);
     cam.inverse_transform = inverse(cam.transform);
@@ -62,7 +76,9 @@ struct canvas render(struct camera const& cam, struct world const& w) {
         for (int x = 0; x < cam.w; ++x) {
             write_pixel(img, x, y, color_at(w, ray_for_pixel(cam, x, y)));
         }
+        print_progress(double(y) / cam.h);
     }
+    std::cout << std::endl;
     return img;
 }
 

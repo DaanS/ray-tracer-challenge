@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include "intersection.h"
 #include "sphere.h"
+#include "plane.h"
+#include "transform.h"
 
 TEST(Intersection, Basic) {
     auto s = sphere();
@@ -66,6 +68,14 @@ TEST(Intersection, Precompute) {
     EXPECT_FALSE(comps.inside);
 }
 
+TEST(Intersection, Reflect) {
+    auto shape = plane();
+    auto r = ray(point(0, 1, -1), vector(0, -std::sqrt(2) / 2, std::sqrt(2) / 2));
+    auto i = intersection(std::sqrt(2), shape);
+    auto comps = prepare_computations(i, r);
+    EXPECT_EQ(comps.reflect, vector(0, std::sqrt(2) / 2, std::sqrt(2) / 2));
+}
+
 TEST(Intersection, Inside) {
     auto r = ray(point(0, 0, 0), vector(0, 0, 1));
     auto shape = sphere();
@@ -75,4 +85,14 @@ TEST(Intersection, Inside) {
     EXPECT_EQ(comps.eye, vector(0, 0, -1));
     EXPECT_EQ(comps.normal, vector(0, 0, -1));
     EXPECT_TRUE(comps.inside);
+}
+
+TEST(Intersection, Overpoint) {
+    auto r = ray(point(0, 0, -5), vector(0, 0, 1));
+    auto shape = sphere();
+    shape.transformation(translation(0, 0, 1));
+    auto i = intersection(5, shape);
+    auto comps = prepare_computations(i, r);
+    EXPECT_LT(comps.over_point.z, epsilon / 2);
+    EXPECT_GT(comps.point.z, comps.over_point.z);
 }

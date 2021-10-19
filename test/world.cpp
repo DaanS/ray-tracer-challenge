@@ -2,6 +2,7 @@
 #include "world.h"
 #include "sphere.h"
 #include "transform.h"
+#include "plane.h"
 
 struct WorldTest : public ::testing::Test {
     struct world w;
@@ -68,7 +69,7 @@ TEST_F(WorldTest, Shade) {
 }
 
 TEST_F(WorldTest, ShadeInside) {
-    w.light(point_light(point(0, 0.25, 0), color(1, 1, 1)));
+    w.lights(0) = point_light(point(0, 0.25, 0), color(1, 1, 1));
     auto r = ray(point(0, 0, 0), vector(0, 0, 1));
     auto& shape = w.objects(1);
     auto i = intersection(0.5, shape);
@@ -96,7 +97,71 @@ TEST_F(WorldTest, MidColor) {
     inner.material().ambient = 1;
     auto r = ray(point(0, 0, 0.75), vector(0, 0, -1));
     auto c = color_at(w, r);
-    // XXX book expects this to return the inner material color, even though it's blocked by the outer sphere
-    //EXPECT_EQ(c, inner.material.color);
-    EXPECT_EQ(c, color(0, 0, 0));
+    EXPECT_EQ(c, dynamic_cast<color_material&>(inner.material()).color);
+}
+
+bool is_shadowed(struct world const& w, struct tuple const& p) {
+    return is_shadowed(w, w.lights(0), p);
+}
+
+TEST_F(WorldTest, ShadowColinear) {
+    auto p = point(0, 10, 0);
+    EXPECT_FALSE(is_shadowed(w, p));
+}
+
+TEST_F(WorldTest, ShadowBlocked) {
+    auto p = point(10, -10, 10);
+    EXPECT_TRUE(is_shadowed(w, p));
+}
+
+TEST_F(WorldTest, ShadowBehind) {
+    auto p = point(-20, 20, -20);
+    EXPECT_FALSE(is_shadowed(w, p));
+}
+
+TEST_F(WorldTest, ShadowBetween) {
+    auto p = point(-2, 2, -2);
+    EXPECT_FALSE(is_shadowed(w, p));
+}
+
+TEST_F(WorldTest, NonreflectiveColor) {
+    auto r = ray(point(0, 0, 0), vector(0, 0, 1));
+    auto& shape = w.objects(1);
+    shape.material().ambient = 1;
+    auto i = intersection(1, shape);
+    auto comps = prepare_computations(i, r);
+    EXPECT_EQ(reflected_color(w, comps), color(0, 0, 0));
+}
+
+TEST_F(WorldTest, ReflectiveColor) {
+    auto& shape = w.object<struct plane>();
+    shape.material().reflective = 0.5;
+    shape.transformation(translation(0, -1, 0));
+    auto r = ray(point(0, 0, -3), vector(0, -std::sqrt(2) / 2, std::sqrt(2) / 2));
+    auto i = intersection(std::sqrt(2), shape);
+    auto comps = prepare_computations(i, r);
+    EXPECT_EQ(reflected_color(w, comps), color(0.19032, 0.2379, 0.14274));
+}
+
+TEST_F(WorldTest, ReflectiveShade) {
+    auto& shape = w.object<struct plane>();
+    shape.material().reflective = 0.5;
+    shape.transformation(translation(0, -1, 0));
+    auto r = ray(point(0, 0, -3), vector(0, -std::sqrt(2) / 2, std::sqrt(2) / 2));
+    auto i = intersection(std::sqrt(2), shape);
+    auto comps = prepare_computations(i, r);
+    EXPECT_EQ(shade_hit(w, comps), color(0.87677, 0.92436, 0.82918));
+}
+
+TEST_F(WorldTest, Recursion) {
+    auto w = world();
+    w.light(point_light(point(0, 0, 0), color(1, 1, 1)));
+    auto& lower = w.object<plane>();
+    lower.material().reflective = 1;
+    lower.transformation(translation(0, -1, 0));
+    auto& upper = w.object<plane>();
+    upper.material().reflective = 1;
+    upper.transformation(translation(0, 1, 0));
+    auto r = ray(point(0, 0, 0), vector(0, 1, 0));
+    color_at(w, r);
 }

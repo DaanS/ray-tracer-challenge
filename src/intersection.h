@@ -68,8 +68,11 @@ struct computations {
     double t;
     struct object const* obj;
     struct tuple point;
+    struct tuple over_point;
+    struct tuple under_point;
     struct tuple eye;
     struct tuple normal;
+    struct tuple reflect;
     bool inside;
 
     struct object const& object() const { return *obj; }
