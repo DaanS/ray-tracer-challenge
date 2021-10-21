@@ -74,8 +74,27 @@ struct computations {
     struct tuple normal;
     struct tuple reflect;
     bool inside;
+    double n1;
+    double n2;
 
     struct object const& object() const { return *obj; }
 };
+
+double schlick(struct computations const& comps) {
+    auto cos = dot(comps.eye, comps.normal);
+
+    if (comps.n1 > comps.n2) {
+        auto n = comps.n1 / comps.n2;
+        auto sin2_t = n * n * (1 - cos * cos);
+        if (sin2_t > 1) return 1;
+
+        cos = sqrt(1 - sin2_t);
+    }
+
+    auto sqrt_r0 = (comps.n1 - comps.n2) / (comps.n1 + comps.n2);
+    auto r0 = sqrt_r0 * sqrt_r0;
+
+    return r0 + (1 - r0) * std::pow(1 - cos, 5);
+}
 
 #endif

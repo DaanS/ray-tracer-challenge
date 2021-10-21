@@ -43,7 +43,7 @@ TEST(Camera, RayTransformed) {
     c.transformation(rotation_y(pi / 4) * translation(0, -2, 5));
     auto r = ray_for_pixel(c, 100, 50);
     EXPECT_EQ(r.origin, point(0, 2, -5));
-    EXPECT_EQ(r.direction, vector(std::sqrt(2) / 2, 0, -std::sqrt(2) / 2));
+    EXPECT_EQ(r.direction, vector(half_sqrt_2, 0, -half_sqrt_2));
 }
 
 TEST(Camera, Render) {

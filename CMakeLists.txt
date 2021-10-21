@@ -12,4 +12,7 @@ enable_testing()
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/test")
 
+find_package(Threads REQUIRED)
+
 add_executable(main src/main.cpp)
+target_link_libraries(main Threads::Threads)

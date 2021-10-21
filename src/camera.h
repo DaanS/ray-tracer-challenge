@@ -1,6 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <array>
+#include <mutex>
+#include <thread>
 #include "transform.h"
 #include "ray.h"
 #include "world.h"
@@ -79,6 +82,30 @@ struct canvas render(struct camera const& cam, struct world const& w) {
         print_progress(double(y) / cam.h);
     }
     std::cout << std::endl;
+    return img;
+}
+
+void render_segment(struct camera const& cam, struct world const& w, struct canvas& img, int segment, int segment_count) {
+    assert(cam.h % segment_count == 0);
+    auto segment_h = cam.h / segment_count;
+    auto start_y = segment * segment_h;
+    for (int y = start_y; y < start_y + segment_h; ++y) {
+        for (int x = 0; x < cam.w; ++x) {
+            write_pixel(img, x, y, color_at(w, ray_for_pixel(cam, x, y)));
+        }
+    }
+}
+
+struct canvas render_mt(struct camera const& cam, struct world const& w) {
+    struct canvas img = canvas(cam.w, cam.h);
+    cam.inverse_transform = inverse(cam.transform);
+    std::array<std::thread, 8> workers;
+    for (int segment = 0; segment < workers.size(); ++segment) {
+        workers[segment] = std::thread([&, segment](){ render_segment(cam, w, img, segment, workers.size()); });
+    }
+    for (auto& worker : workers) {
+        if (worker.joinable()) worker.join();
+    }
     return img;
 }
 

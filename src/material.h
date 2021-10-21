@@ -11,6 +11,8 @@ struct material {
     double specular = 0.9;
     double shininess = 200;
     double reflective = 0;
+    double transparency = 0;
+    double refractive_index = 1;
 
     virtual ~material() {}
 

@@ -100,7 +100,7 @@ TEST(Sphere, NormalTranslated) {
 TEST(Sphere, NormalTransformed) {
     auto s = sphere();
     s.transformation(scaling(1, 0.5, 1) * rotation_z(std::numbers::pi / 5));
-    auto n = normal_at(s, point(0, std::sqrt(2) / 2, -std::sqrt(2) / 2));
+    auto n = normal_at(s, point(0, half_sqrt_2, -half_sqrt_2));
     EXPECT_EQ(n, vector(0, 0.97014, -0.24254));
 }
 

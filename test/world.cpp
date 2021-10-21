@@ -137,7 +137,7 @@ TEST_F(WorldTest, ReflectiveColor) {
     auto& shape = w.object<struct plane>();
     shape.material().reflective = 0.5;
     shape.transformation(translation(0, -1, 0));
-    auto r = ray(point(0, 0, -3), vector(0, -std::sqrt(2) / 2, std::sqrt(2) / 2));
+    auto r = ray(point(0, 0, -3), vector(0, -half_sqrt_2, half_sqrt_2));
     auto i = intersection(std::sqrt(2), shape);
     auto comps = prepare_computations(i, r);
     EXPECT_EQ(reflected_color(w, comps), color(0.19032, 0.2379, 0.14274));
@@ -147,10 +147,12 @@ TEST_F(WorldTest, ReflectiveShade) {
     auto& shape = w.object<struct plane>();
     shape.material().reflective = 0.5;
     shape.transformation(translation(0, -1, 0));
-    auto r = ray(point(0, 0, -3), vector(0, -std::sqrt(2) / 2, std::sqrt(2) / 2));
+    auto r = ray(point(0, 0, -3), vector(0, -half_sqrt_2, half_sqrt_2));
     auto i = intersection(std::sqrt(2), shape);
     auto comps = prepare_computations(i, r);
+    // XXX original test broke because I decided to add reflect_factor to object::lighting
     EXPECT_EQ(shade_hit(w, comps), color(0.87677, 0.92436, 0.82918));
+    //EXPECT_EQ(shade_hit(w, comps), color(0.533561, 0.581147, 0.485974));
 }
 
 TEST_F(WorldTest, Recursion) {
@@ -164,4 +166,93 @@ TEST_F(WorldTest, Recursion) {
     upper.transformation(translation(0, 1, 0));
     auto r = ray(point(0, 0, 0), vector(0, 1, 0));
     color_at(w, r);
+}
+
+TEST_F(WorldTest, RefractionOpaque) {
+    auto& shape = w.objects(0);
+    auto r = ray(point(0, 0, -5), vector(0 ,0, 1));
+    auto xs = intersections(intersection(4, shape), intersection(6, shape));
+    auto comps = prepare_computations(xs[0], r, xs);
+    EXPECT_EQ(refracted_color(w, comps, 0), color(0, 0, 0));
+}
+
+TEST_F(WorldTest, RefractionMax) {
+    auto& shape = w.objects(0);
+    shape.material().transparency = 1;
+    shape.material().refractive_index = 1.5;
+    auto r = ray(point(0, 0, -5), vector(0, 0, 1));
+    auto xs = intersections(intersection(4, shape), intersection(6, shape));
+    auto comps = prepare_computations(xs[0], r, xs);
+    EXPECT_EQ(refracted_color(w, comps, max_ray_depth + 1), color(0, 0, 0));
+}
+
+TEST_F(WorldTest, TotalInternalReflection) {
+    auto& shape = w.objects(0);
+    shape.material().transparency = 1.0;
+    shape.material().refractive_index = 1.5;
+    auto r = ray(point(0, 0, half_sqrt_2), vector(0, 1, 0));
+    auto xs = intersections(intersection(-half_sqrt_2, shape), intersection(half_sqrt_2, shape));
+    auto comps = prepare_computations(xs[1], r, xs);
+    EXPECT_EQ(refracted_color(w, comps, 0), color(0, 0, 0));
+}
+
+struct test {
+    bool operator==(struct test const& rhs) const {
+        return true;
+    }
+
+    struct tuple operator()(struct tuple const& p) const {
+        return p;
+    }
+};
+
+TEST_F(WorldTest, RefractedColor) {
+    auto& a = w.objects(0);
+    a.material(pattern_material(test()));
+    a.material().ambient = 1;
+    auto& b = w.objects(1);
+    b.material().transparency = 1;
+    b.material().refractive_index = 1.5;
+    auto r = ray(point(0, 0, 0.1), vector(0, 1, 0));
+    auto xs = intersections(
+        intersection(-0.9899, a),
+        intersection(-0.4899, b),
+        intersection(0.4899, b),
+        intersection(0.9899, a)
+    );
+    auto comps = prepare_computations(xs[2], r, xs);
+    EXPECT_EQ(refracted_color(w, comps, 0), color(0, 0.99888, 0.04725));
+}
+
+TEST_F(WorldTest, Transparent) {
+    auto& floor = w.object<plane>();
+    floor.transformation(translation(0, -1, 0));
+    floor.material().transparency = 0.5;
+    floor.material().refractive_index = 1.5;
+    auto& ball = w.object<struct sphere>();
+    ball.material(color_material(1, 0, 0));
+    ball.material().ambient = 0.5;
+    ball.transformation(translation(0, -3.5, -0.5));
+    auto r = ray(point(0, 0, -3), vector(0, -half_sqrt_2, half_sqrt_2));
+    auto xs = intersections(intersection(std::sqrt(2), floor));
+    auto comps = prepare_computations(xs[0], r, xs);
+    // XXX original test broke because I decided to add reflect_factor to object::lighting
+    EXPECT_EQ(shade_hit(w, comps, 0), color(0.93642, 0.68642, 0.68642));
+    //EXPECT_EQ(shade_hit(w, comps, 0), color(0.593213, 0.343213, 0.343213));
+}
+
+TEST_F(WorldTest, ReflectiveTransparent) {
+    auto r = ray(point(0, 0, -3), vector(0, -half_sqrt_2, half_sqrt_2));
+    auto& floor = w.object<plane>();
+    floor.transformation(translation(0, -1, 0));
+    floor.material().reflective = 0.5;
+    floor.material().transparency = 0.5;
+    floor.material().refractive_index = 1.5;
+    auto& ball = w.object<struct sphere>();
+    ball.transformation(translation(0, -3.5, -0.5));
+    ball.material(color_material(1, 0, 0));
+    ball.material().ambient = 0.5;
+    auto xs = intersections(intersection(std::sqrt(2), floor));
+    auto comps = prepare_computations(xs[0], r, xs);
+    EXPECT_EQ(shade_hit(w, comps, 0), color(0.93391, 0.69643, 0.69243));
 }

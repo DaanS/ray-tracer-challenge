@@ -41,7 +41,7 @@ TEST_F(ColorMaterialTest, Straight) {
 }
 
 TEST_F(ColorMaterialTest, Eye45) {
-    auto eye = vector(0, std::sqrt(2) / 2, -std::sqrt(2) / 2);
+    auto eye = vector(0, half_sqrt_2, -half_sqrt_2);
     auto normal = vector(0, 0, -1);
     auto light = point_light(point(0, 0, -10), color(1, 1, 1));
     auto res = lighting(s, light, pos, eye, normal);
@@ -57,7 +57,7 @@ TEST_F(ColorMaterialTest, Light45) {
 }
 
 TEST_F(ColorMaterialTest, EyeLight45) {
-    auto eye = vector(0, -std::sqrt(2) / 2, -std::sqrt(2) / 2);
+    auto eye = vector(0, -half_sqrt_2, -half_sqrt_2);
     auto normal = vector(0, 0, -1);
     auto light = point_light(point(0, 10, -10), color(1, 1, 1));
     auto res = lighting(s, light, pos, eye, normal);
@@ -154,4 +154,9 @@ TEST_F(PatternMaterialTest, Checkers) {
 
 TEST_F(ColorMaterialTest, Reflective) {
     EXPECT_EQ(m.reflective, 0);
+}
+
+TEST_F(ColorMaterialTest, Refraction) {
+    EXPECT_EQ(m.transparency, 0);
+    EXPECT_EQ(m.refractive_index, 1);
 }
